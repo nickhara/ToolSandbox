@@ -467,49 +467,71 @@ Files beyond `log.backup_count` (default: 5) are deleted. With defaults, you'll 
 A typical run with 3 available updates:
 
 ```
-2026-04-23 03:00:00  INFO      ============================================================
-2026-04-23 03:00:00  INFO      WingetUpdater started at 2026-04-23 03:00:00
-2026-04-23 03:00:00  INFO      ============================================================
-2026-04-23 03:00:00  INFO      Checking for available updates...
+2026-04-23 03:00:00  INFO       __        ___                   _   _   _           _       _
+2026-04-23 03:00:00  INFO       \ \      / (_)_ __   __ _  ___| |_| | | |_ __   __| | __ _| |_ ___ _ __
+2026-04-23 03:00:00  INFO        \ \ /\ / /| | '_ \ / _` |/ _ \ __| | | | '_ \ / _` |/ _` | __/ _ \ '__|
+2026-04-23 03:00:00  INFO         \ V  V / | | | | | (_| |  __/ |_| |_| | |_) | (_| | (_| | ||  __/ |
+2026-04-23 03:00:00  INFO          \_/\_/  |_|_| |_|\__, |\___|\__|\___/| .__/ \__,_|\__,_|\__\___|_|
+2026-04-23 03:00:00  INFO                            |___/               |_|
+2026-04-23 03:00:00  INFO
+2026-04-23 03:00:00  INFO        Started: 2026-04-23 03:00:00
+2026-04-23 03:00:00  INFO        Host:    MYPC
+2026-04-23 03:00:00  INFO        Config:  config.json
+2026-04-23 03:00:00  INFO        Mode:    LIVE
+2026-04-23 03:00:00  INFO
+2026-04-23 03:00:00  INFO      ┌──────────────────────────────────────────────────────────┐
+2026-04-23 03:00:00  INFO      │                  🔍  CHECKING FOR UPDATES                │
+2026-04-23 03:00:00  INFO      └──────────────────────────────────────────────────────────┘
 2026-04-23 03:00:05  INFO      Found 3 update(s) available:
-2026-04-23 03:00:05  INFO        7zip.7zip                                 24.08 -> 24.09
-2026-04-23 03:00:05  INFO        Git.Git                                   2.47.0 -> 2.47.1
-2026-04-23 03:00:05  INFO        Mozilla.Firefox                           133.0 -> 133.0.1
-2026-04-23 03:00:05  INFO      Applying updates...
-2026-04-23 03:01:30  INFO      Update complete. Succeeded: 3, Failed: 0
-2026-04-23 03:01:30  INFO        OK: Successfully installed 7zip.7zip
-2026-04-23 03:01:30  INFO        OK: Successfully installed Git.Git
-2026-04-23 03:01:30  INFO        OK: Successfully installed Mozilla.Firefox
-2026-04-23 03:01:30  INFO      ------------------------------------------------------------
-2026-04-23 03:01:30  INFO      Finished successfully. 3 package(s) updated.
-2026-04-23 03:01:30  INFO      ============================================================
-```
-
-A dry-run with no updates available:
-
-```
-2026-04-23 12:00:00  INFO      ============================================================
-2026-04-23 12:00:00  INFO      WingetUpdater started at 2026-04-23 12:00:00
-2026-04-23 12:00:00  INFO      ============================================================
-2026-04-23 12:00:00  INFO      Checking for available updates...
-2026-04-23 12:00:03  INFO      All packages are up to date.
-2026-04-23 12:00:03  INFO      Dry-run mode — skipping update installation.
-2026-04-23 12:00:03  INFO      ------------------------------------------------------------
-2026-04-23 12:00:03  INFO      DRY RUN complete. 0 update(s) available.
-2026-04-23 12:00:03  INFO      ============================================================
+2026-04-23 03:00:05  INFO      ┌──────────────────────────────────┬─────────┬───────────┐
+2026-04-23 03:00:05  INFO      │ Package ID                       │ Current │ Available │
+2026-04-23 03:00:05  INFO      ├──────────────────────────────────┼─────────┼───────────┤
+2026-04-23 03:00:05  INFO      │ 7zip.7zip                        │ 24.08   │ 24.09     │
+2026-04-23 03:00:05  INFO      │ Git.Git                          │ 2.47.0  │ 2.47.1    │
+2026-04-23 03:00:05  INFO      │ Mozilla.Firefox                  │ 133.0   │ 133.0.1   │
+2026-04-23 03:00:05  INFO      └──────────────────────────────────┴─────────┴───────────┘
+2026-04-23 03:00:05  INFO
+2026-04-23 03:00:05  INFO      ┌──────────────────────────────────────────────────────────┐
+2026-04-23 03:00:05  INFO      │                   ⬆️  APPLYING UPDATES                   │
+2026-04-23 03:00:05  INFO      └──────────────────────────────────────────────────────────┘
+2026-04-23 03:01:30  INFO
+2026-04-23 03:01:30  INFO      ┌──────────────────────────────────────────────────────────┐
+2026-04-23 03:01:30  INFO      │                   📊  UPDATE RESULTS                     │
+2026-04-23 03:01:30  INFO      └──────────────────────────────────────────────────────────┘
+2026-04-23 03:01:30  INFO        Succeeded: 3  |  Failed: 0
+2026-04-23 03:01:30  INFO
+2026-04-23 03:01:30  INFO        ✅  Successfully installed 7zip.7zip
+2026-04-23 03:01:30  INFO        ✅  Successfully installed Git.Git
+2026-04-23 03:01:30  INFO        ✅  Successfully installed Mozilla.Firefox
+2026-04-23 03:01:30  INFO
+2026-04-23 03:01:30  INFO      ┌━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┐
+2026-04-23 03:01:30  INFO      │                      📋  SUMMARY                          │
+2026-04-23 03:01:30  INFO      └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘
+2026-04-23 03:01:30  INFO        Finished successfully. 3 package(s) updated.
 ```
 
 A run with a failure:
 
 ```
-2026-04-23 03:00:00  INFO      Applying updates...
-2026-04-23 03:01:00  INFO      Update complete. Succeeded: 2, Failed: 1
-2026-04-23 03:01:00  INFO        OK: Successfully installed 7zip.7zip
-2026-04-23 03:01:00  INFO        OK: Successfully installed Git.Git
-2026-04-23 03:01:00  WARNING     FAIL: An unexpected error occurred while installing Mozilla.Firefox
-2026-04-23 03:01:00  INFO      Sending email report to admin@example.com ...
-2026-04-23 03:01:02  INFO      Email sent successfully.
-2026-04-23 03:01:02  WARNING   Finished with 1 failure(s) and 2 success(es).
+2026-04-23 03:01:30  INFO      ┌──────────────────────────────────────────────────────────┐
+2026-04-23 03:01:30  INFO      │                   📊  UPDATE RESULTS                     │
+2026-04-23 03:01:30  INFO      └──────────────────────────────────────────────────────────┘
+2026-04-23 03:01:30  INFO        Succeeded: 2  |  Failed: 1
+2026-04-23 03:01:30  INFO
+2026-04-23 03:01:30  INFO        ✅  Successfully installed 7zip.7zip
+2026-04-23 03:01:30  INFO        ✅  Successfully installed Git.Git
+2026-04-23 03:01:30  WARNING     ❌  An unexpected error occurred while installing Mozilla.Firefox
+2026-04-23 03:01:30  INFO
+2026-04-23 03:01:30  INFO      ┌──────────────────────────────────────────────────────────┐
+2026-04-23 03:01:30  INFO      │                    📧  EMAIL REPORT                      │
+2026-04-23 03:01:30  INFO      └──────────────────────────────────────────────────────────┘
+2026-04-23 03:01:30  INFO      Sending email report to admin@example.com ...
+2026-04-23 03:01:32  INFO      Email sent successfully.
+2026-04-23 03:01:32  INFO
+2026-04-23 03:01:32  INFO      ┌━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┐
+2026-04-23 03:01:32  INFO      │                      📋  SUMMARY                          │
+2026-04-23 03:01:32  INFO      └━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┘
+2026-04-23 03:01:32  WARNING     Finished with 1 failure(s) and 2 success(es).
 ```
 
 ### Email Report
@@ -517,8 +539,8 @@ A run with a failure:
 When email is enabled, the report includes:
 
 - **Subject line:** `[WingetUpdater] HOSTNAME: OK — 3 updated` (or `FAILURES (1)` on failure)
-- **HTML body:** A formatted table of available updates, a list of succeeded installs, and a highlighted section for any failures
-- **Plain-text body:** The same information in a plain-text format for email clients that don't render HTML
+- **HTML body:** A polished, modern layout with a dark gradient header, a color-coded status banner (green for success, red for failures, blue for dry-run), a striped and sortable-style package table, and individual result cards with colored left borders
+- **Plain-text fallback:** A clean ASCII-formatted report with box-drawing characters for clients that don't render HTML
 
 ---
 

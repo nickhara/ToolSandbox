@@ -22,6 +22,49 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
+BANNER = r"""
+ __        ___                   _   _   _           _       _
+ \ \      / (_)_ __   __ _  ___| |_| | | |_ __   __| | __ _| |_ ___ _ __
+  \ \ /\ / /| | '_ \ / _` |/ _ \ __| | | | '_ \ / _` |/ _` | __/ _ \ '__|
+   \ V  V / | | | | | (_| |  __/ |_| |_| | |_) | (_| | (_| | ||  __/ |
+    \_/\_/  |_|_| |_|\__, |\___|\__|\___/| .__/ \__,_|\__,_|\__\___|_|
+                      |___/               |_|
+"""
+
+
+def _log_section(logger: logging.Logger, title: str, char: str = "━") -> None:
+    """Log a decorated section header."""
+    bar = char * 60
+    logger.info("")
+    logger.info("┌%s┐", char * 58)
+    logger.info("│%s│", title.center(58))
+    logger.info("└%s┘", char * 58)
+
+
+def _log_table(logger: logging.Logger, rows: list[list[str]], headers: list[str]) -> None:
+    """Log a formatted ASCII table."""
+    cols = len(headers)
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i in range(cols):
+            widths[i] = max(widths[i], len(row[i]) if i < len(row) else 0)
+
+    sep = "├" + "┼".join("─" * (w + 2) for w in widths) + "┤"
+    top = "┌" + "┬".join("─" * (w + 2) for w in widths) + "┐"
+    bot = "└" + "┴".join("─" * (w + 2) for w in widths) + "┘"
+
+    hdr = "│" + "│".join(f" {headers[i]:<{widths[i]}} " for i in range(cols)) + "│"
+    logger.info(top)
+    logger.info(hdr)
+    logger.info(sep)
+    for row in rows:
+        cells = "│" + "│".join(
+            f" {(row[i] if i < len(row) else ''):<{widths[i]}} " for i in range(cols)
+        ) + "│"
+        logger.info(cells)
+    logger.info(bot)
+
+
 DEFAULT_CONFIG = {
     "log": {
         "file": "winget_updater.log",
@@ -223,7 +266,7 @@ def _parse_upgrade_list(output: str) -> list[dict]:
 
 def check_updates(config: dict, logger: logging.Logger) -> list[dict]:
     """Check for available updates and return the list of packages."""
-    logger.info("Checking for available updates...")
+    _log_section(logger, "🔍  CHECKING FOR UPDATES")
     args = ["update"]
     if config["winget"].get("accept_source_agreements"):
         args.append("--accept-source-agreements")
@@ -248,19 +291,20 @@ def check_updates(config: dict, logger: logging.Logger) -> list[dict]:
 
     if packages:
         logger.info("Found %d update(s) available:", len(packages))
-        for pkg in packages:
-            logger.info(
-                "  %-40s  %s -> %s", pkg["id"], pkg["current_version"], pkg["available_version"]
-            )
+        table_rows = [
+            [pkg["id"], pkg["current_version"], pkg["available_version"]]
+            for pkg in packages
+        ]
+        _log_table(logger, table_rows, ["Package ID", "Current", "Available"])
     else:
-        logger.info("All packages are up to date.")
+        logger.info("✅  All packages are up to date.")
 
     return packages
 
 
 def apply_updates(config: dict, logger: logging.Logger) -> tuple[list[dict], list[dict]]:
     """Run `winget update --all` and return (succeeded, failed) package lists."""
-    logger.info("Applying updates...")
+    _log_section(logger, "⬆️  APPLYING UPDATES")
 
     args = ["update", "--all"]
     if config["winget"].get("accept_source_agreements"):
@@ -301,12 +345,16 @@ def apply_updates(config: dict, logger: logging.Logger) -> tuple[list[dict], lis
     if result.returncode != 0 and not failed:
         failed.append({"detail": f"winget exited with code {result.returncode}"})
 
-    logger.info("Update complete. Succeeded: %d, Failed: %d", len(succeeded), len(failed))
+    _log_section(logger, "📊  UPDATE RESULTS")
+    logger.info("  Succeeded: %d  |  Failed: %d", len(succeeded), len(failed))
+    logger.info("")
 
-    for s in succeeded:
-        logger.info("  OK: %s", s["detail"])
-    for f in failed:
-        logger.warning("  FAIL: %s", f["detail"])
+    if succeeded:
+        for s in succeeded:
+            logger.info("  ✅  %s", s["detail"])
+    if failed:
+        for f in failed:
+            logger.warning("  ❌  %s", f["detail"])
 
     return succeeded, failed
 
@@ -325,72 +373,150 @@ def _build_email_body(
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     hostname = os.environ.get("COMPUTERNAME", "unknown")
 
-    # Plain text
+    # ── Plain text ──────────────────────────────────────────────
     lines = [
-        f"WingetUpdater Report — {now}",
-        f"Host: {hostname}",
+        "╔══════════════════════════════════════════════════════════╗",
+        "║              WINGET UPDATER  —  REPORT                  ║",
+        "╚══════════════════════════════════════════════════════════╝",
         "",
+        f"  Host:    {hostname}",
+        f"  Date:    {now}",
     ]
-
     if dry_run:
-        lines.append("Mode: DRY RUN (no updates applied)")
-        lines.append("")
+        lines.append("  Mode:    DRY RUN (no updates applied)")
+    lines.append("")
 
-    lines.append(f"Updates available: {len(available)}")
-    for pkg in available:
-        lines.append(f"  {pkg['id']:40s}  {pkg['current_version']} -> {pkg['available_version']}")
-
-    if not dry_run:
-        lines.extend(["", f"Succeeded: {len(succeeded)}"])
-        for s in succeeded:
-            lines.append(f"  {s['detail']}")
-        lines.extend([f"Failed: {len(failed)}"])
-        for f in failed:
-            lines.append(f"  {f['detail']}")
-
-    plain = "\n".join(lines)
-
-    # HTML
-    html_parts = [
-        "<html><body>",
-        f"<h2>WingetUpdater Report &mdash; {now}</h2>",
-        f"<p><strong>Host:</strong> {hostname}</p>",
-    ]
-
-    if dry_run:
-        html_parts.append("<p><em>Mode: DRY RUN (no updates applied)</em></p>")
-
-    html_parts.append(f"<h3>Updates Available ({len(available)})</h3>")
     if available:
-        html_parts.append("<table border='1' cellpadding='4' cellspacing='0'>")
-        html_parts.append("<tr><th>Package</th><th>Current</th><th>Available</th></tr>")
+        lines.append(f"  Updates Available: {len(available)}")
+        lines.append("  " + "-" * 56)
         for pkg in available:
-            html_parts.append(
-                f"<tr><td>{html_mod.escape(pkg['id'])}</td>"
-                f"<td>{html_mod.escape(pkg['current_version'])}</td>"
-                f"<td>{html_mod.escape(pkg['available_version'])}</td></tr>"
+            lines.append(
+                f"  {pkg['id']:40s}  {pkg['current_version']:>8s} → {pkg['available_version']}"
             )
-        html_parts.append("</table>")
-    else:
-        html_parts.append("<p>All packages are up to date.</p>")
+        lines.append("")
 
     if not dry_run:
         if succeeded:
-            html_parts.append(f"<h3>Succeeded ({len(succeeded)})</h3><ul>")
+            lines.append(f"  ✅ Succeeded: {len(succeeded)}")
             for s in succeeded:
-                html_parts.append(f"<li>{html_mod.escape(s['detail'])}</li>")
-            html_parts.append("</ul>")
+                lines.append(f"     {s['detail']}")
+            lines.append("")
+        if failed:
+            lines.append(f"  ❌ Failed: {len(failed)}")
+            for f_ in failed:
+                lines.append(f"     {f_['detail']}")
+            lines.append("")
+        if not succeeded and not failed:
+            lines.append("  No update operations were performed.")
+            lines.append("")
+    elif not available:
+        lines.append("  ✅ All packages are up to date.")
+        lines.append("")
+
+    plain = "\n".join(lines)
+
+    # ── HTML ────────────────────────────────────────────────────
+    if failed:
+        status_color = "#dc3545"
+        status_icon = "❌"
+        status_text = f"{len(failed)} FAILURE{'S' if len(failed) != 1 else ''}"
+    elif succeeded:
+        status_color = "#28a745"
+        status_icon = "✅"
+        status_text = f"{len(succeeded)} UPDATED"
+    elif available and dry_run:
+        status_color = "#0d6efd"
+        status_icon = "🔍"
+        status_text = f"{len(available)} AVAILABLE (DRY RUN)"
+    else:
+        status_color = "#28a745"
+        status_icon = "✅"
+        status_text = "UP TO DATE"
+
+    html = f"""\
+<html>
+<head>
+<style>
+  body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }}
+  .container {{ max-width: 700px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }}
+  .header {{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; padding: 28px 32px; }}
+  .header h1 {{ margin: 0 0 4px 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }}
+  .header .subtitle {{ color: #94a3b8; font-size: 13px; }}
+  .status-banner {{ padding: 14px 32px; background: {status_color}; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; }}
+  .content {{ padding: 24px 32px; }}
+  .meta-table {{ width: 100%; margin-bottom: 20px; font-size: 13px; color: #64748b; }}
+  .meta-table td {{ padding: 3px 0; }}
+  .meta-table td:first-child {{ font-weight: 600; width: 80px; color: #475569; }}
+  h2 {{ font-size: 16px; color: #1e293b; margin: 24px 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }}
+  table.pkg-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }}
+  table.pkg-table th {{ background: #f8fafc; color: #475569; text-align: left; padding: 10px 12px; border: 1px solid #e2e8f0; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }}
+  table.pkg-table td {{ padding: 9px 12px; border: 1px solid #e2e8f0; }}
+  table.pkg-table tr:nth-child(even) {{ background: #f8fafc; }}
+  table.pkg-table tr:hover {{ background: #eff6ff; }}
+  .result-item {{ padding: 8px 12px; margin: 4px 0; border-radius: 4px; font-size: 13px; }}
+  .result-ok {{ background: #f0fdf4; border-left: 3px solid #22c55e; color: #166534; }}
+  .result-fail {{ background: #fef2f2; border-left: 3px solid #ef4444; color: #991b1b; }}
+  .footer {{ padding: 16px 32px; background: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #94a3b8; }}
+  .version-arrow {{ color: #94a3b8; padding: 0 4px; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>WingetUpdater</h1>
+    <div class="subtitle">Automated Software Update Report</div>
+  </div>
+  <div class="status-banner">{status_icon}&ensp;{status_text}</div>
+  <div class="content">
+    <table class="meta-table">
+      <tr><td>Host</td><td>{html_mod.escape(hostname)}</td></tr>
+      <tr><td>Date</td><td>{html_mod.escape(now)}</td></tr>
+      <tr><td>Mode</td><td>{'DRY RUN' if dry_run else 'Live Update'}</td></tr>
+    </table>
+"""
+
+    # Available updates table
+    if available:
+        html += f'    <h2>📦 Available Updates ({len(available)})</h2>\n'
+        html += '    <table class="pkg-table">\n'
+        html += "      <tr><th>Package</th><th>Current Version</th>"
+        html += '<th>Available Version</th></tr>\n'
+        for pkg in available:
+            pid = html_mod.escape(pkg["id"])
+            cur = html_mod.escape(pkg["current_version"])
+            avail = html_mod.escape(pkg["available_version"])
+            html += (
+                f"      <tr><td><strong>{pid}</strong></td>"
+                f'<td>{cur}</td><td style="color:#0d6efd;font-weight:600">{avail}</td></tr>\n'
+            )
+        html += "    </table>\n"
+    else:
+        html += "    <p>All packages are up to date. No action required.</p>\n"
+
+    # Results
+    if not dry_run:
+        if succeeded:
+            html += f'    <h2>✅ Succeeded ({len(succeeded)})</h2>\n'
+            for s in succeeded:
+                html += f'    <div class="result-item result-ok">{html_mod.escape(s["detail"])}</div>\n'
 
         if failed:
-            html_parts.append(f"<h3 style='color:red'>Failed ({len(failed)})</h3><ul>")
+            html += f'    <h2>❌ Failed ({len(failed)})</h2>\n'
             for f_ in failed:
-                html_parts.append(f"<li>{html_mod.escape(f_['detail'])}</li>")
-            html_parts.append("</ul>")
-        elif not succeeded:
-            html_parts.append("<p>No update operations were performed.</p>")
+                html += f'    <div class="result-item result-fail">{html_mod.escape(f_["detail"])}</div>\n'
 
-    html_parts.append("</body></html>")
-    html = "\n".join(html_parts)
+        if not succeeded and not failed:
+            html += "    <p>No update operations were performed.</p>\n"
+
+    html += """\
+  </div>
+  <div class="footer">
+    Generated by WingetUpdater &bull; github.com/nickhara/ToolSandbox
+  </div>
+</div>
+</body>
+</html>
+"""
 
     return plain, html
 
@@ -518,9 +644,13 @@ def main(argv: list[str] | None = None) -> int:
     config = load_config(args.config)
     logger = setup_logging(config, verbose=args.verbose)
 
-    logger.info("=" * 60)
-    logger.info("WingetUpdater started at %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    logger.info("=" * 60)
+    for line in BANNER.strip().splitlines():
+        logger.info(line)
+    logger.info("")
+    logger.info("  Started: %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info("  Host:    %s", os.environ.get("COMPUTERNAME", "unknown"))
+    logger.info("  Config:  %s", args.config)
+    logger.info("  Mode:    %s", "DRY RUN" if args.dry_run else "LIVE")
 
     # Check for updates
     available = check_updates(config, logger)
@@ -531,22 +661,24 @@ def main(argv: list[str] | None = None) -> int:
     if available and not args.dry_run:
         succeeded, failed = apply_updates(config, logger)
     elif args.dry_run:
-        logger.info("Dry-run mode — skipping update installation.")
+        logger.info("")
+        logger.info("  ℹ️  Dry-run mode — skipping update installation.")
 
     # Email
     email_sent = True
     if should_send_email(config, failed, args.force_email):
+        _log_section(logger, "📧  EMAIL REPORT")
         email_sent = send_email(config, available, succeeded, failed, args.dry_run, logger)
 
     # Summary
-    logger.info("-" * 60)
+    _log_section(logger, "📋  SUMMARY", "━")
     if args.dry_run:
-        logger.info("DRY RUN complete. %d update(s) available.", len(available))
+        logger.info("  DRY RUN complete. %d update(s) available.", len(available))
     elif failed:
-        logger.warning("Finished with %d failure(s) and %d success(es).", len(failed), len(succeeded))
+        logger.warning("  Finished with %d failure(s) and %d success(es).", len(failed), len(succeeded))
     else:
-        logger.info("Finished successfully. %d package(s) updated.", len(succeeded))
-    logger.info("=" * 60)
+        logger.info("  Finished successfully. %d package(s) updated.", len(succeeded))
+    logger.info("")
 
     if failed:
         return EXIT_PARTIAL_FAILURE
