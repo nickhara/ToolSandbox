@@ -5,7 +5,7 @@
 #   - nuget          → DFSCleanup solution (DfsTargetCleanup + tests)
 #   - github-actions → any workflows added under .github/workflows/
 #
-# WingetUpdater is intentionally not tracked — it has no external Python deps
+# WingetUpdater (if added later) is intentionally not tracked — it has no external Python deps
 # (standard library only, no requirements.txt / pyproject.toml).
 
 version: 2
