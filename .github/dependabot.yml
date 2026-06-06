@@ -22,12 +22,8 @@ updates:
       time: "06:00"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 10
-    labels:
-      - dependencies
-      - nuget
     commit-message:
       prefix: "deps(nuget)"
-      include: scope
     groups:
       # Roll up low-risk updates into a single PR per week to keep noise down.
       nuget-minor-and-patch:
@@ -58,12 +54,8 @@ updates:
       time: "06:00"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - github-actions
     commit-message:
       prefix: "deps(actions)"
-      include: scope
     groups:
       actions-minor-and-patch:
         applies-to: version-updates
