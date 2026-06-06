@@ -34,11 +34,11 @@ BANNER = r"""
 
 def _log_section(logger: logging.Logger, title: str, char: str = "━") -> None:
     """Log a decorated section header."""
-    bar = char * 60
+    bar = char * 58
     logger.info("")
-    logger.info("┌%s┐", char * 58)
+    logger.info("┌%s┐", bar)
     logger.info("│%s│", title.center(58))
-    logger.info("└%s┘", char * 58)
+    logger.info("└%s┘", bar)
 
 
 def _log_table(logger: logging.Logger, rows: list[list[str]], headers: list[str]) -> None:
@@ -147,10 +147,9 @@ def setup_logging(config: dict, verbose: bool = False) -> logging.Logger:
     logger = logging.getLogger("winget_updater")
     logger.setLevel(level)
     logger.handlers.clear()
-    # Don't propagate to the root logger — load_config may have lazily
-    # triggered logging.basicConfig() (via the root logging.info call when
-    # no config file is present), which would otherwise print every line
-    # twice with the default INFO:winget_updater: format.
+    # Don't propagate to the root logger — `load_config()` may log via the root logger
+    # before our handlers are configured. If the root logger is configured elsewhere,
+    # propagation would cause duplicate output (root + winget_updater handlers).
     logger.propagate = False
 
     formatter = logging.Formatter(
@@ -570,18 +569,22 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = email_cfg["from_address"]
     msg["To"] = ", ".join(email_cfg["to_addresses"])
-    msg.attach(MIMEText(plain, "plain"))
-    msg.attach(MIMEText(html, "html"))
+    msg.attach(MIMEText(plain, "plain", "utf-8"))
+    msg.attach(MIMEText(html, "html", "utf-8"))
 
     try:
         logger.info("Sending email report to %s ...", msg["To"])
-        server = smtplib.SMTP(email_cfg["smtp_server"], email_cfg["smtp_port"], timeout=30)
-        if email_cfg.get("use_tls", True):
-            server.starttls()
-        if email_cfg.get("username") and email_cfg.get("password"):
-            server.login(email_cfg["username"], email_cfg["password"])
-        server.sendmail(email_cfg["from_address"], email_cfg["to_addresses"], msg.as_string())
-        server.quit()
+        host = email_cfg["smtp_server"]
+        port = int(email_cfg["smtp_port"])
+        use_tls = email_cfg.get("use_tls", True)
+
+        smtp_factory = smtplib.SMTP_SSL if (use_tls and port == 465) else smtplib.SMTP
+        with smtp_factory(host, port, timeout=30) as server:
+            if use_tls and port != 465:
+                server.starttls()
+            if email_cfg.get("username") and email_cfg.get("password"):
+                server.login(email_cfg["username"], email_cfg["password"])
+            server.sendmail(email_cfg["from_address"], email_cfg["to_addresses"], msg.as_string())
         logger.info("Email sent successfully.")
         return True
     except Exception:
