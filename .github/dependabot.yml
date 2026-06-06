@@ -21,9 +21,9 @@ updates:
   #       Test:      coverlet.collector, Microsoft.NET.Test.Sdk, Moq, xunit,
   #                  xunit.runner.visualstudio
   #
-  # No nuget.config exists in this repo and none is required. Dependabot's nuget
+  # No NuGet.config exists in this repo and none is required. Dependabot's nuget
   # ecosystem reads <PackageReference> directly from .csproj/.sln files and uses
-  # the default nuget.org feed. A nuget.config would only be needed if/when this
+  # the default nuget.org feed. A NuGet.config would only be needed if/when this
   # solution starts consuming a private/internal feed or needs to override
   # package source mappings; in that case, add NuGet.config alongside the .sln
   # and configure Dependabot registries/credentials as needed for any authenticated feeds.
