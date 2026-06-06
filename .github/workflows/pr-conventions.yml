@@ -15,8 +15,9 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
+  contents: read
   pull-requests: read
-
+  checks: write
 jobs:
   pr-conventions-check:
     name: pr-conventions-check
