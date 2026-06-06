@@ -26,7 +26,7 @@ updates:
   # the default nuget.org feed. A nuget.config would only be needed if/when this
   # solution starts consuming a private/internal feed or needs to override
   # package source mappings; in that case, add NuGet.config alongside the .sln
-  # and Dependabot will pick up the additional sources automatically.
+  # and configure Dependabot registries/credentials as needed for any authenticated feeds.
   # ---------------------------------------------------------------------------
   - package-ecosystem: nuget
     directory: /DFSCleanup
