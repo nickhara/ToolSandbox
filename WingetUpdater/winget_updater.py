@@ -638,6 +638,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     email_group.add_argument(
         "--no-email",
         action="store_false",
+        default=None,
         dest="force_email",
         help="Suppress email report.",
     )
