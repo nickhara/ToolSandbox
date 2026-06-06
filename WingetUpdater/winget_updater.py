@@ -147,6 +147,11 @@ def setup_logging(config: dict, verbose: bool = False) -> logging.Logger:
     logger = logging.getLogger("winget_updater")
     logger.setLevel(level)
     logger.handlers.clear()
+    # Don't propagate to the root logger — load_config may have lazily
+    # triggered logging.basicConfig() (via the root logging.info call when
+    # no config file is present), which would otherwise print every line
+    # twice with the default INFO:winget_updater: format.
+    logger.propagate = False
 
     formatter = logging.Formatter(
         "%(asctime)s  %(levelname)-8s  %(message)s",
@@ -168,7 +173,16 @@ def setup_logging(config: dict, verbose: bool = False) -> logging.Logger:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    # Console handler
+    # Console handler — force UTF-8 so the box-drawing characters and emoji
+    # used throughout the script don't blow up on Windows consoles (cp1252
+    # by default). Falls back to 'replace' for any terminal that still
+    # can't render a particular glyph, so we never crash on output.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except (AttributeError, OSError):
+        # stdout might be redirected to a stream that doesn't support
+        # reconfigure (e.g. a non-TextIOWrapper). Best effort only.
+        pass
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
