@@ -24,6 +24,9 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "deps(nuget)"
+    labels:
+      - dependencies
+      - nuget
     groups:
       # Roll up low-risk updates into a single PR per week to keep noise down.
       nuget-minor-and-patch:
@@ -56,6 +59,9 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps(actions)"
+    labels:
+      - dependencies
+      - github-actions
     groups:
       actions-minor-and-patch:
         applies-to: version-updates
