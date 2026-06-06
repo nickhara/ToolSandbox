@@ -12,7 +12,7 @@ name: pr-conventions
 
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
 
 permissions:
   pull-requests: read
@@ -39,7 +39,7 @@ jobs:
             ci
             revert
           requireScope: false
-          subjectPattern: ^(?![A-Z]).+$
+          subjectPattern: ^[a-z].+$
           subjectPatternError: |
             The subject of the PR title must start with a lowercase letter.
             Example: "feat(winget-updater): add --exclude flag"
@@ -49,7 +49,7 @@ jobs:
           BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
-          PATTERN='^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)/'
+          PATTERN='^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)/[a-z0-9._/-]+$'
           if [[ ! "$BRANCH" =~ $PATTERN ]]; then
             echo "::notice::Branch '$BRANCH' doesn't start with a recommended type prefix (feat/, fix/, chore/, ...). This is a suggestion, not a failure. See CONTRIBUTING.md."
           else
