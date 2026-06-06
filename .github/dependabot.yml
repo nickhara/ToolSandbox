@@ -15,9 +15,8 @@
 # If a future change adds a third-party Python dependency, create the appropriate manifest
 # under /WingetUpdater and add a `pip` ecosystem block here mirroring the `nuget` block
 # below (weekly Monday schedule, grouped minor/patch + separate security group, labels:
-# dependencies + pip, commit-message prefix "deps(pip)"). See the WingetUpdater skill
-# (~/.copilot/skills/winget-update/SKILL.md, "Dependency management (Dependabot)" section)
-# for the full rationale.
+# dependencies + pip, commit-message prefix "deps(pip)").
+# If this guidance is duplicated elsewhere (docs/skills), keep the rationale in sync.
 
 version: 2
 
