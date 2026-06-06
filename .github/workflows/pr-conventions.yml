@@ -1,0 +1,57 @@
+# Validates PRs against the project's Conventional Commits + branch naming rules.
+# See CONTRIBUTING.md for the full convention.
+
+name: pr-conventions
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-conventions-check:
+    name: pr-conventions-check
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Validate PR title is a Conventional Commit.
+      #    Squash-merges use the PR title as the commit on main, so this is
+      #    the most important check.
+      - name: Validate PR title (Conventional Commits)
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            refactor
+            test
+            perf
+            build
+            ci
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject of the PR title must start with a lowercase letter.
+            Example: "feat(docker-cleanup): add aggressive mode flag"
+
+      # 2. Validate the PR head branch name follows the agreed pattern.
+      - name: Validate branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          PATTERN='^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)/[a-z0-9._/-]+$'
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "::error::Branch name '$BRANCH' does not match the required pattern."
+            echo "::error::Expected: <type>/<kebab-case-description>"
+            echo "::error::Allowed types: feat, fix, chore, docs, refactor, test, perf, build, ci, revert"
+            echo "::error::Examples: feat/docker-cleanup-aggressive-mode, chore/dependabot-config"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH' OK."
