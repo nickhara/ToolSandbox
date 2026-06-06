@@ -5,9 +5,9 @@
 #   - nuget          → DFSCleanup solution (DfsTargetCleanup + tests)
 #   - github-actions → any workflows added under .github/workflows/
 #
-# WingetUpdater is intentionally NOT tracked — it has no external Python dependencies.
-# The tool uses only the Python standard library (argparse, json, logging, os, html, re,
-# smtplib, subprocess, sys, datetime, email.mime.*, pathlib) and ships no requirements.txt,
+# WingetUpdater (when present) is intentionally NOT tracked — it is expected to have no external Python dependencies.
+# It should use only the Python standard library (argparse, json, logging, os, html, re,
+# smtplib, subprocess, sys, datetime, email.mime.*, pathlib) and ship no requirements.txt,
 # pyproject.toml, setup.py, or Pipfile, so Dependabot's `pip` ecosystem has nothing to read.
 # Its sole external dependency is the `winget` CLI itself (a Windows system tool that
 # Dependabot cannot manage).
