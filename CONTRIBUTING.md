@@ -13,8 +13,10 @@ down without helping anyone, skip it and move on.
 - Prefer a short-lived branch + squash-merged PR over pushing to `main`. For
   truly trivial edits (typo, comment, `.gitignore`, dependabot follow-up),
   a direct push to `main` is fine.
-- The only automated check is the **PR title** — because squash-merge promotes
-  it verbatim to `main`. Branch names are a soft suggestion.
+- The automated checks are the **PR title** and the **branch name** — both are
+  validated and required on every PR. The PR title must follow Conventional
+  Commits because squash-merge promotes it verbatim to `main`. The branch name
+  must match `^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)/[a-z0-9._/-]+$`.
 
 ## Commit / PR title format
 
@@ -54,7 +56,7 @@ Fix Bug.               # capitalized, trailing period, no specifics
 - Branch off the latest `origin/main`. Name it something obvious.
   `feat/winget-utf8-fix` is great. `nick-test-2` is fine for a throwaway.
 - A prefix matching the change type (`feat/`, `fix/`, `chore/`, …) is
-  encouraged because it sorts nicely in `git branch -a`. Not enforced.
+  **required** — the PR workflow enforces `^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)/[a-z0-9._/-]+$`.
 - Open a PR, squash-merge, delete the branch. The PR title is the commit on
   `main`, so make it good.
 
