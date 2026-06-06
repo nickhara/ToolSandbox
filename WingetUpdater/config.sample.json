@@ -1,0 +1,28 @@
+{
+    "log": {
+        "file": "winget_updater.log",
+        "max_bytes": 5242880,
+        "backup_count": 5,
+        "level": "INFO"
+    },
+    "email": {
+        "enabled": false,
+        "send_on": "failure",
+        "smtp_server": "smtp.example.com",
+        "smtp_port": 587,
+        "use_tls": true,
+        "username": "user@example.com",
+        "password": "__USE_ENV_VAR_WINGET_UPDATER_SMTP_PASSWORD__",
+        "from_address": "user@example.com",
+        "to_addresses": [
+            "recipient@example.com"
+        ],
+        "subject_prefix": "[WingetUpdater]"
+    },
+    "winget": {
+        "accept_source_agreements": true,
+        "accept_package_agreements": true,
+        "exclude_packages": [],
+        "include_unknown": false
+    }
+}
