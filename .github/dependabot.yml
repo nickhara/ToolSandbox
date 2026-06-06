@@ -1,0 +1,76 @@
+# Dependabot configuration for ToolSandbox
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Ecosystems tracked:
+#   - nuget          → DFSCleanup solution (DfsTargetCleanup + tests)
+#   - github-actions → any workflows added under .github/workflows/
+#
+# WingetUpdater (if added later) is intentionally not tracked — it has no external Python deps
+# (standard library only, no requirements.txt / pyproject.toml).
+
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # .NET / NuGet packages for the DFSCleanup solution
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: nuget
+    directory: /DFSCleanup
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps(nuget)"
+    labels:
+      - dependencies
+      - nuget
+    groups:
+      # Roll up low-risk updates into a single PR per week to keep noise down.
+      nuget-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+      # Security fixes always grouped together for fast review.
+      nuget-security:
+        applies-to: security-updates
+        update-types:
+          - patch
+          - minor
+          - major
+    # Majors get their own PRs (left ungrouped) so breaking changes are reviewed
+    # on their own merits rather than buried in a multi-package bump.
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions used by any workflows under .github/workflows/
+  # No workflows exist today; this is a no-op until one is added, at which
+  # point Dependabot will start tracking the action versions automatically.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(actions)"
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      actions-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+      actions-security:
+        applies-to: security-updates
+        update-types:
+          - patch
+          - minor
+          - major
